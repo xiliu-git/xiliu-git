@@ -1,0 +1,84 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+#Combine braken with the noexpats metadata
+1.generante one abundance file and 
+2.bracken file macthed with noexapts metadata
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readxl)
+library(reshape2)
+library(ggpubr)
+library(rstatix)
+#import the files
+meta <- read_xlsx("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats/meta_noexpats.xlsx")
+bracken <- read.delim("/ebio/abt3_projects/HUBIF_metagenomics/data/pipelines/llmgp/HiSeqRuns120-123-129-140-151-175-195-196/llmgp_output/kraken/all-combined-bracken.tsv")
+
+#select the first column and all the columns names with _frac
+abund <- select(bracken, name, grep("frac", colnames(bracken)))
+abund
+colnames(abund)             
+#change the column names, remove "_frac" in all the columns
+for(col in 1:ncol(abund)){
+  colnames(abund)[col] <- sub("_frac", "", colnames(abund)[col])
+}
+abund
+#select the column names in another vector, remove the ones not in bracken
+f <- meta$ParticipantID
+abund_sel <- select(abund, name, f)
+#until this step,it will complain the samples which are not present in bracken
+rem <- c("G0093", "G0095", "G0097","G0424", "T249","T073", "T305", "T323", "V089", "V205", "V267", "V436")
+r <- f[! f %in% rem]
+abund_sel <- select(abund, name, r)
+#repeat the previous 3 steps, until remove all the samples not in bracken file
+setwd("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats")
+write.csv(abund_sel, "bracken_abundance_noexpats.csv")
+
+##Part2_Generate a file with only reads data
+abund <- select(bracken, name, grep("num", colnames(bracken)))
+abund
+colnames(abund)             
+#change the column names, remove "_frac" in all the columns
+for(col in 1:ncol(abund)){
+  colnames(abund)[col] <- sub("_num", "", colnames(abund)[col])
+}
+abund
+#select the column names in the participantID vector, remove the samples  not in bracken columns, it will complain on the second step since they are some samples not present in the bracken
+f <- meta$ParticipantID
+#Now create a new vector whichit will remove the samples not present in brakcen from metadata
+rem <- c("G0093", "G0095", "G0097","G0424", "T249","T073", "T305", "T323", "V089", "V205", "V267", "V436") #removed samples list
+r <- f[! f %in% rem] #a new vector without the removed samples
+abund_sel <- select(abund, name, r) #select the abundance data of the samples that are present in metadata with 620 samples
+setwd("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats")
+write.csv(abund_sel, "bracken_reads_noexpats.csv")
+
+
+
+
+```
+
+
+```{r}
+#choose the bracken taxonomy based on metadata participant numbers(663)
+#select the column names in another vector
+f <- meta$ParticipantID
+#remove the columns which are not present in the abundance file and save the new vector as r
+rem <- c("G0093", "G0095", "G0097","G0424", "T249","T073", "T305", "T323", "V089", "V205", "V267", "V436")
+r <- f[! f %in% rem]
+#choose the columns that with pattern _frac and _num in r vector
+r1 <- paste0(r, "_frac")
+r2 <- paste0(r, "_num")
+c <- c(r1,r2)
+#select the bracken columns which match in the adult participant file
+brac_sel <- select(bracken, 1:5, c)
+head(brac_sel)
+ncol(brac_sel)
+#write out the file
+setwd("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats")
+write.csv(brac_sel, "all-combined-bracken.csv")
+#Edit the file in excel,  put the column names in the order _num _frac
+#first copy the frist 5 columns to somewhere, replace _num with _anum, and sort by row, then the order will be _anum and _fra, then remove _anum to _num
+```

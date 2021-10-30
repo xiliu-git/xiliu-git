@@ -1,0 +1,93 @@
+---
+title: "lactose intolerance"
+output: html_notebook
+---
+
+
+#Fig1: Breath hydrogen, methane and blood glucose test results
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+#load the table with expats
+rise <- read_xlsx("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats/GlucoseH2CH4rise.xlsx")
+factor(rise$feature)
+dim(rise)
+#add extra column and set it as factor and set the order level
+rise$feature_f = factor(rise$feature, levels=c('H2_rise','CH4_rise','Glucose_rise'))
+rise
+
+my_comparisons <- list(c("AAAG", "GG"))
+
+ggplot(rise, aes(rs4988235AAAG, value, color = Country)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8) +
+       stat_compare_means(comparisons = my_comparisons, label = "p.signif", label.x = 1.5) +
+       facet_grid(feature_f~Country, drop = FALSE, scale = "free_y") +
+       stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="grey40") +
+       theme_bw() +
+         theme(panel.grid.major = element_blank(),
+         panel.grid.minor =  element_blank(), 
+         panel.background = element_blank()) +
+       xlab("") +
+       ylab("LTT and HBT test results of all subjects") +
+       theme(aspect.ratio = 1) +
+      scale_y_continuous(expand = expansion(mult = c(0.05, 0.15)))
+```
+```{r}
+library(readxl)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+#load the table with expats
+rise <- read_xlsx("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats/GlucoseH2CH4rise.xlsx")
+factor(rise$feature)
+dim(rise)
+#add extra column and set it as factor and set the order level
+rise$feature_f = factor(rise$feature, levels=c('H2_rise','CH4_rise','Glucose_rise'))
+rise
+
+my_comparisons <- list(c("AAAG", "GG"))
+
+ggplot(rise, aes(rs4988235AAAG, value)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8, alpha = 0.8) +
+       stat_compare_means(comparisons = my_comparisons, label = "p.signif", label.x = 1.5) +
+       facet_grid(feature_f~Country, drop = FALSE, scale = "free_y") +
+       stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="red") +
+       theme_bw() +
+         theme(panel.grid.major = element_blank(),
+         panel.grid.minor =  element_blank(), 
+         panel.background = element_blank()) +
+       xlab("") +
+       ylab("Comparison of LTT and HBT test results of different LP genotypes ") +
+       theme(aspect.ratio = 1) +
+      scale_y_continuous(expand = expansion(mult = c(0.05, 0.15)))
+```
+
+
+
+
+```{r}
+#statistical test, facet by feature_f, and Clade1_imputed variables, and compare the rs4988235AAAG variables on the x-axia, The Turkey post hoc test is used for the pirwise comparisons
+rise_gg <- filter(rise, rs4988235AAAG == "GG")   
+
+my_comparisons <- list(c("Gabon", "Vietnam"), c("Gabon", "Germany"), c("Vietnam", "Germany"))
+
+ggplot(rise, aes(Country, value, color = Country)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8) +
+       stat_compare_means(comparisons = my_comparisons, label = "p.signif", label.x = 1.5) +
+       facet_wrap(~feature_f, drop = FALSE, scale = "free_y") +
+       stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="grey40") +
+       theme_bw() +
+         theme(panel.grid.major = element_blank(),
+         panel.grid.minor =  element_blank(), 
+         panel.background = element_blank()) +
+       xlab("") +
+       ylab("LTT and HBT test results of LNP subjects") +
+       theme(aspect.ratio = 1.5) +
+      scale_y_continuous(expand = expansion(mult = c(0.03, 0.1)))
+```

@@ -1,0 +1,111 @@
+---
+title: "lactose intolerance"
+output: html_notebook
+---
+
+#Bifido abundance comparison between different genotypes, countries and clades
+##Input file - metadata with extra column with Bifido abundance data
+```{r}
+library(readxl)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+#load the table with expats
+Bifdo <- read.csv("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/Bifido/t_Abundance_bifido_647_clade.csv")
+meta <- read.csv("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats/meta_noexpats_sel.csv")
+#Import OTU table without taxonomy,Taxonomy table and sample metadata
+f <- meta$sample
+Bifdo <- Bifdo %>% subset(ParticipantID %in% f)
+dim(Bifdo)
+dim(meta_sel)
+setwd("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/Bifido")
+write.csv(Bifdo, "t_Abundance_bifido_noexpats.csv")
+
+
+
+#remove the samples that don't have genotype informaiton(4 of them)
+Bif <- read.csv("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/Bifido/t_Abundance_bifido_noexpats.csv")
+dim(Bifdo)
+#plot the Bifido abundance comparison between AA/AG and GG genotype
+ggplot(Bif, aes(rs4988235AAAG, Bifido_abundance)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8, alpha = 0.5) +
+       stat_compare_means(method="wilcox.test", label="p.signif", label.x = 1.5, lable.y = 0.5) +
+       stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="red") +
+       theme_bw() +
+       theme(axis.line = element_line(),
+         panel.grid.major = element_blank(),
+         panel.grid.minor =  element_blank(), 
+         panel.background = element_blank(),
+         panel.border = element_blank()) +
+       xlab("") +
+       ylab("Bidido abundance with different genotypes") +
+       theme(aspect.ratio = 1.5) +
+       scale_y_log10()
+```
+
+
+```{r}
+#facet by country
+ggplot(Bif, aes(rs4988235AAAG, Bifido_abundance)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8, alpha = 0.5) +
+       stat_compare_means(method="wilcox.test", label="p.signif", label.x = 1.2, lable.y = 0.5) +
+       facet_grid(~Country, drop = FALSE, scale = "free_y") +
+       stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="red") +
+       theme_bw() +
+         theme(panel.grid.major = element_blank(),
+         panel.grid.minor =  element_blank(), 
+         panel.background = element_blank()) +
+       xlab("") +
+       ylab("Bidido abundance with different genotype") +
+       theme(aspect.ratio = 1.5) +
+       scale_y_log10()
+```
+
+
+```{r}
+
+#facet by clade
+ggplot(Bifdo, aes(rs4988235AAAG, Bifido_abundance)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8, alpha = 0.5) +
+       stat_compare_means(method="wilcox.test", label="p.format", label.x = 1.2, lable.y = 0.5) +
+       facet_grid(~Clade1_imputed, drop = FALSE, scale = "free_y") +
+       stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="red") +
+         theme_bw() +
+         theme(panel.grid.major = element_blank(),
+               panel.grid.minor =  element_blank(), 
+               panel.background = element_blank()) +
+       xlab("") +
+       ylab("Bidido abundance with different genotype") +
+       theme(aspect.ratio = 1.5) +
+       scale_y_log10()
+```
+
+
+```{r}
+#plot the Bifido abundance comparison between cloade with only GG genotype
+#select the samples that only have GG genotype
+j <- Bifdo[Bifdo$rs4988235AAAG == "GG",]
+#define the comparison groups
+my_comparisons <- list( c("Africa", "Asia"), c("Africa", "Europe"), c("Asia", "Europe") )
+compare_means(Bifido_abundance ~ Clade1_imputed,  data = j)
+#ggplot
+ggplot(j, aes(Clade1_imputed, Bifido_abundance)) + 
+  geom_jitter(position=position_jitter(0.1), size = 0.8, alpha = 0.5) +
+    scale_y_log10() +
+    stat_summary(fun.y=mean, geom="point", shape=10,
+                 size=1, color="red") +
+     stat_compare_means(comparisons = my_comparisons, label="p.signif") +
+         theme_bw() +
+         theme(axis.line = element_line(),
+               panel.grid.major = element_blank(),
+               panel.grid.minor =  element_blank(), 
+               panel.background = element_blank(),
+               panel.border = element_blank()) +
+       xlab("") +
+       ylab("Bidido abundance with GG Genotype") +
+       theme(aspect.ratio = 1.5) +
+       scale_y_log10()
+```

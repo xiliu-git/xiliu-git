@@ -54,12 +54,7 @@ r <- f[! f %in% rem] #a new vector without the removed samples
 abund_sel <- select(abund, name, r) #select the abundance data of the samples that are present in metadata with 620 samples
 setwd("/ebio/abt3_projects/hubif_lactose_intolerance/hubif_lactose_desk/fin_analysis/noexpats")
 write.csv(abund_sel, "bracken_reads_noexpats.csv")
-
-
-
-
 ```
-
 
 ```{r}
 #choose the bracken taxonomy based on metadata participant numbers(663)
